@@ -84,3 +84,12 @@ class DropboxUploader
     end
   end
 end
+
+dropbox_uploader = DropboxUploader.new(repo, commit, path)
+dropbox_uploader.login_github(GITHUB_LOGIN, GITHUB_PASSWORD)
+dropbox_uploader.login_dropbox(DROPBOX_TOKEN)
+dropbox_uploader.retrieve_pr
+dropbox_uploader.create_remote_folder
+dropbox_uploader.retrieve_last_status
+dropbox_uploader.update_status
+dropbox_uploader.upload_files
