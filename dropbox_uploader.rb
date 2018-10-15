@@ -1,5 +1,7 @@
-require 'json'
+require './lib/dropbox_api'
 require 'logger'
+require 'octokit'
+require 'json'
 
 # Reading credentials
 CONFIG_JSON = 'config.json'.freeze
@@ -21,5 +23,15 @@ class DropboxUploader
     @commit = commit
     @path = path
     @logger = logger.nil? ? Logger.new(STDOUT) : logger
+  end
+
+  def login_github(login, password)
+    @logger.info('Connecting to github')
+    @github = Octokit::Client.new(login: login, password: password)
+  end
+
+  def login_dropbox(token)
+    @logger.info('Connecting to dropbox')
+    @dropbox = DropboxAPI.new(token)
   end
 end
