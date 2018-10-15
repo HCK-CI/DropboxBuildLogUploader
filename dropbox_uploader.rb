@@ -73,4 +73,14 @@ class DropboxUploader
     @logger.info('Updating current status with remote url')
     @github.create_status(@repo, @commit, @last_status.state, options)
   end
+
+  def upload_files
+    @logger.info('Uploading files')
+    Dir.new(@path).each do |file|
+      fullpath = @path + '/' + file
+      next unless File.file?(fullpath)
+
+      @dropbox.upload_file(fullpath)
+    end
+  end
 end
