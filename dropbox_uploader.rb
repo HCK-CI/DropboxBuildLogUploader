@@ -34,4 +34,13 @@ class DropboxUploader
     @logger.info('Connecting to dropbox')
     @dropbox = DropboxAPI.new(token)
   end
+
+  def retrieve_pr
+    @logger.info('Retrieving pull request commit hash')
+    @pr = @github.pulls(@repo).find { |x| x['head']['sha'] == @commit }
+    return unless @pr.nil?
+
+    @logger.fatal('Pull request commit hash not found, aborting')
+    exit 1
+  end
 end
