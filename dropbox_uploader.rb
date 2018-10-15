@@ -1,4 +1,5 @@
 require 'json'
+require 'logger'
 
 # Reading credentials
 CONFIG_JSON = 'config.json'.freeze
@@ -12,3 +13,13 @@ DROPBOX_TOKEN = config['dropbox_token']
 repo = ARGV[0]
 commit = ARGV[1]
 path = ARGV[2]
+
+# DropboxUploader class
+class DropboxUploader
+  def initialize(repo, commit, path, logger = nil)
+    @repo = repo
+    @commit = commit
+    @path = path
+    @logger = logger.nil? ? Logger.new(STDOUT) : logger
+  end
+end
