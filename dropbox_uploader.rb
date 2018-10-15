@@ -61,4 +61,16 @@ class DropboxUploader
     statuses_list = @github.combined_status(@repo, @commit).statuses
     @last_status  = statuses_list.find { |status| status.context == 'HCK-CI' }
   end
+
+  def update_status
+    if @last_status.nil?
+      @logger.error('Last status not available')
+      return
+    end
+    options = { 'context' => @last_status.context,
+                'description' => @last_status.description,
+                'target_url' => @target_url }
+    @logger.info('Updating current status with remote url')
+    @github.create_status(@repo, @commit, @last_status.state, options)
+  end
 end
