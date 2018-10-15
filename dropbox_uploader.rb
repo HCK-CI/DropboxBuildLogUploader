@@ -43,4 +43,16 @@ class DropboxUploader
     @logger.fatal('Pull request commit hash not found, aborting')
     exit 1
   end
+
+  def create_remote_folder
+    if @pr.nil?
+      @logger.error('No pull request commit hash')
+      return
+    end
+    @logger.info('Creating remote dropbox folder')
+    current_time = Time.now.strftime('%Y_%m_%d_%H_%M_%S')
+    remote_path = "PR #{@pr['number']} - #{current_time}"
+    @dropbox.create_folder(remote_path)
+    @target_url = @dropbox.url
+  end
 end
