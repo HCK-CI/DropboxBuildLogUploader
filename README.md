@@ -7,12 +7,12 @@ This tool will let you upload Jenkins artifacts into dropbox remote folder and u
 4. Mark 'Restrict where this project can run' checkbox and add 'linux_host'.
 5. Add build step: 'Copy artifacts from another project'
 6. Set Project name: 'VirtIO', Which build: 'Upstream build that triggered this job', artifacts to copy: build_log.txt, diff.txt, sign_log.txt
-. Add build step: 'Execute shell'
-7. Set in the command to run, `ruby <path_to_dropbox_uploader.rb> <github_ripo> ${ghprbActualCommit} ${WORKSPACE}`
-   for example : 'ruby /Prometheus/AutoHCK/dropbox_uploader.rb daynix/kvm-guest-drivers-windows ${ghprbActualCommit} ${WORKSPACE}'
-8. Save changes
-9. In 'VirtIO' project configuration add 'Trigger parameterized build on other projects' in Post-build action
-10. In 'Projects to build' add the new project we made.
-11. Set Trigger when build is 'Complete (always trigger)'
-12. Click 'Add Parameters' and select 'Current bulid parameters'
-13. Save changes
+7. Add build step: 'Execute shell'
+8. Set in the command to run, `cd <path_AutoHCK_path>; ruby dropbox_uploader.rb <github_ripo> ${ghprbActualCommit} ${WORKSPACE}`
+   for example : 'cd /Prometheus/AutoHCK/; ruby dropbox_uploader.rb daynix/kvm-guest-drivers-windows ${ghprbActualCommit} ${WORKSPACE}'
+9. Save changes
+10. In 'VirtIO' project configuration add 'Trigger parameterized build on other projects' in Post-build action
+11. In 'Projects to build' add the new project we made.
+12. Set Trigger when build is 'Complete (always trigger)'
+13. Click 'Add Parameters' and select 'Current bulid parameters'
+14. Save changes
