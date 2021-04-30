@@ -59,7 +59,7 @@ class DropboxUploader
   end
 
   def retrieve_last_status
-    @logger.info('Retriving current status info')
+    @logger.info('Retrieving current status info')
     statuses_list = @github.combined_status(@repo, @commit).statuses
     @last_status  = statuses_list.find { |status| status.context == 'HCK-CI' }
   end
