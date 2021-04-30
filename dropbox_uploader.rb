@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'dropbox_api'
 require 'logger'
 require 'octokit'
 require 'json'
@@ -33,7 +34,7 @@ class DropboxUploader
 
   def login_dropbox(token)
     @logger.info('Connecting to dropbox')
-    @dropbox = DropboxAPI.new(token)
+    @dropbox = DropboxApi::Client.new(token)
   end
 
   def retrieve_pr
