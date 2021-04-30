@@ -1,10 +1,11 @@
-require './lib/dropbox_api'
+# frozen_string_literal: true
+
 require 'logger'
 require 'octokit'
 require 'json'
 
 # Reading credentials
-CONFIG_JSON = 'config.json'.freeze
+CONFIG_JSON = 'config.json'
 
 config = JSON.parse(File.read(CONFIG_JSON))
 GITHUB_LOGIN = config['github_credentials']['login']
@@ -22,7 +23,7 @@ class DropboxUploader
     @repo = repo
     @commit = commit
     @path = path
-    @logger = logger.nil? ? Logger.new(STDOUT) : logger
+    @logger = logger.nil? ? Logger.new($stdout) : logger
   end
 
   def login_github(login, password)
@@ -77,7 +78,7 @@ class DropboxUploader
   def upload_files
     @logger.info('Uploading files')
     Dir.new(@path).each do |file|
-      fullpath = @path + '/' + file
+      fullpath = "#{@path}/#{file}"
       next unless File.file?(fullpath)
 
       @dropbox.upload_file(fullpath)
