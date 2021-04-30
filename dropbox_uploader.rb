@@ -57,13 +57,14 @@ class DropboxUploader
   def create_remote_folder
     if @pr.nil?
       @logger.error('No pull request commit hash')
-      return
+      exit 1
     end
     @logger.info('Creating remote dropbox folder')
     current_time = Time.now.strftime('%Y_%m_%d_%H_%M_%S')
-    remote_path = "PR #{@pr['number']} - #{current_time}"
-    @dropbox.create_folder(remote_path)
-    @target_url = @dropbox.url
+    @remote_path = "/PR #{@pr['number']} - #{current_time}"
+    @dropbox.create_folder(@remote_path)
+    @url = "#{@dropbox.create_shared_link_with_settings(@remote_path).url}&lst="
+    @target_url = @url
   end
 
   def retrieve_last_status
@@ -75,7 +76,7 @@ class DropboxUploader
   def update_status
     if @last_status.nil?
       @logger.error('Last status not available')
-      return
+      exit 1
     end
     options = { 'context' => @last_status.context,
                 'description' => @last_status.description,
@@ -90,7 +91,9 @@ class DropboxUploader
       fullpath = "#{@path}/#{file}"
       next unless File.file?(fullpath)
 
-      @dropbox.upload_file(fullpath)
+      content = IO.read(fullpath)
+      r_path = "#{@remote_path}/#{file}"
+      @dropbox.upload(r_path, content)
     end
   end
 end
