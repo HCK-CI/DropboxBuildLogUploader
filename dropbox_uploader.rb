@@ -8,10 +8,16 @@ require 'json'
 # Reading credentials
 CONFIG_JSON = 'config.json'
 
-config = JSON.parse(File.read(CONFIG_JSON))
-GITHUB_LOGIN = config['github_credentials']['login']
-GITHUB_PASSWORD = config['github_credentials']['password']
-DROPBOX_TOKEN = config['dropbox_token']
+if File.exist?(CONFIG_JSON)
+  config = JSON.parse(File.read(CONFIG_JSON))
+  GITHUB_LOGIN = config['github_credentials']['login']
+  GITHUB_PASSWORD = config['github_credentials']['password']
+  DROPBOX_TOKEN = config['dropbox_token']
+else
+  GITHUB_LOGIN = ENV['AUTOHCK_GITHUB_LOGIN']
+  GITHUB_PASSWORD = ENV['AUTOHCK_GITHUB_TOKEN']
+  DROPBOX_TOKEN = ENV['AUTOHCK_DROPBOX_TOKEN']
+end
 
 # Reading CLI args
 repo = ARGV[0]
