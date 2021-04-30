@@ -23,12 +23,14 @@ end
 repo = ARGV[0]
 commit = ARGV[1]
 path = ARGV[2]
+commit_status_context = ARGV[3] || 'HCK-CI'
 
 # DropboxUploader class
 class DropboxUploader
-  def initialize(repo, commit, path, logger = nil)
+  def initialize(repo, commit, commit_status_context, path, logger = nil)
     @repo = repo
     @commit = commit
+    @commit_status_context = commit_status_context
     @path = path
     @logger = logger.nil? ? Logger.new($stdout) : logger
   end
@@ -67,7 +69,7 @@ class DropboxUploader
   def retrieve_last_status
     @logger.info('Retrieving current status info')
     statuses_list = @github.combined_status(@repo, @commit).statuses
-    @last_status  = statuses_list.find { |status| status.context == 'HCK-CI' }
+    @last_status  = statuses_list.find { |status| status.context == @commit_status_context }
   end
 
   def update_status
@@ -93,7 +95,7 @@ class DropboxUploader
   end
 end
 
-dropbox_uploader = DropboxUploader.new(repo, commit, path)
+dropbox_uploader = DropboxUploader.new(repo, commit, commit_status_context, path)
 dropbox_uploader.login_github(GITHUB_LOGIN, GITHUB_PASSWORD)
 dropbox_uploader.login_dropbox(DROPBOX_TOKEN)
 dropbox_uploader.retrieve_pr
