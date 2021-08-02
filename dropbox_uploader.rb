@@ -61,7 +61,7 @@ class DropboxUploader
     end
     @logger.info('Creating remote dropbox folder')
     current_time = Time.now.strftime('%Y_%m_%d_%H_%M_%S')
-    @remote_path = "/PR #{@pr['number']} - #{current_time}"
+    @remote_path = "/#{@repo}/Build/PR #{@pr['number']} - #{current_time}"
     @dropbox.create_folder(@remote_path)
     @url = "#{@dropbox.create_shared_link_with_settings(@remote_path).url}&lst="
     @target_url = @url
