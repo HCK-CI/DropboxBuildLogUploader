@@ -13,11 +13,15 @@ if File.exist?(CONFIG_JSON)
   config = JSON.parse(File.read(CONFIG_JSON))
   GITHUB_LOGIN = config['github_credentials']['login']
   GITHUB_PASSWORD = config['github_credentials']['password']
-  DROPBOX_TOKEN = config['dropbox_token']
+  DROPBOX_TOKEN_JSON = config['dropbox_token_json']
+  DROPBOX_CLIENT_ID = config['dropbox_client_id']
+  DROPBOX_CLIENT_SECRET = config['dropbox_client_secret']
 else
   GITHUB_LOGIN = ENV['AUTOHCK_GITHUB_LOGIN']
   GITHUB_PASSWORD = ENV['AUTOHCK_GITHUB_TOKEN']
-  DROPBOX_TOKEN = ENV['AUTOHCK_DROPBOX_TOKEN']
+  DROPBOX_TOKEN_JSON = ENV['AUTOHCK_DROPBOX_TOKEN_JSON']
+  DROPBOX_CLIENT_ID = ENV['AUTOHCK_DROPBOX_CLIENT_ID']
+  DROPBOX_CLIENT_SECRET = ENV['AUTOHCK_DROPBOX_CLIENT_SECRET']
 end
 
 # Reading CLI args
@@ -41,9 +45,73 @@ class DropboxUploader
     @github = Octokit::Client.new(login: login, password: password)
   end
 
-  def login_dropbox(token)
-    @logger.info('Connecting to dropbox')
-    @dropbox = DropboxApi::Client.new(token)
+  def init_dropbox(client_id, client_secret, token_file)
+    @logger.info('Initializing dropbox')
+    @token_file = token_file
+
+    @authenticator = DropboxApi::Authenticator.new(client_id, client_secret)
+  end
+
+  def ask_token
+    url = @authenticator.auth_code.authorize_url(token_access_type: 'offline')
+    @logger.info("Navigate to #{url}")
+    @logger.info('Please enter authorization code')
+
+    code = gets.chomp
+    @token = @authenticator.auth_code.get_token(code)
+
+    save_token(@token)
+  end
+
+  def save_token(token)
+    @logger.info('Dropbox token to be saved in the local file')
+
+    File.open(@token_file, 'w') do |f|
+      f.write(token.to_hash.to_json)
+    end
+  end
+
+  def load_token
+    @logger.info('Loading Dropbox token from the local file')
+
+    return nil unless File.exist?(@token_file)
+
+    begin
+      hash = JSON.parse(File.read(@token_file))
+    rescue StandardError => e
+      @logger.warn("Loading Dropbox token error: (#{e.class}) #{e.message}")
+
+      return nil
+    end
+
+    @token = OAuth2::AccessToken.from_hash(@authenticator, hash)
+  end
+
+  def login_dropbox
+    @dropbox = DropboxApi::Client.new(
+      access_token: @token,
+      on_token_refreshed: lambda { |new_token|
+        save_token(new_token)
+      }
+    )
+  end
+
+  def connect_dropbox
+    load_token if @token.nil?
+
+    if @token
+      login_dropbox
+    else
+      @logger.info('Dropbox token missing')
+    end
+
+    if @dropbox.nil?
+      @logger.warn('Dropbox authentication failure, aborting')
+      exit 1
+    end
+  rescue DropboxApi::Errors::HttpError
+    @logger.fatal('Dropbox connection error, aborting')
+    exit 1
   end
 
   def retrieve_pr
@@ -100,8 +168,14 @@ class DropboxUploader
 end
 
 dropbox_uploader = DropboxUploader.new(repo, commit, commit_status_context, path)
+dropbox_uploader.init_dropbox(DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET, DROPBOX_TOKEN_JSON)
+if repo == '--ask'
+  dropbox_uploader.ask_token
+  exit 0
+end
+
+dropbox_uploader.connect_dropbox
 dropbox_uploader.login_github(GITHUB_LOGIN, GITHUB_PASSWORD)
-dropbox_uploader.login_dropbox(DROPBOX_TOKEN)
 dropbox_uploader.retrieve_pr
 dropbox_uploader.create_remote_folder
 dropbox_uploader.retrieve_last_status
