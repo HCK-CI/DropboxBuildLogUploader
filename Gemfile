@@ -8,3 +8,8 @@ gem 'dotenv'
 gem 'dropbox_api'
 gem 'filelock'
 gem 'octokit'
+
+group :test do
+  gem 'code-scanning-rubocop', '= 0.6.1'
+  gem 'rubocop', '= 1.9.1'
+end
