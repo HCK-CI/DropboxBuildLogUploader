@@ -88,10 +88,10 @@ class DropboxUploader
   def upload_files
     @logger.info('Uploading files')
     Dir.new(@path).each do |file|
-      fullpath = "#{@path}/#{file}"
-      next unless File.file?(fullpath)
+      full_path = "#{@path}/#{file}"
+      next unless File.file?(full_path)
 
-      content = IO.read(fullpath)
+      content = IO.read(full_path)
       r_path = "#{@remote_path}/#{file}"
       @dropbox.upload(r_path, content)
     end
