@@ -1,0 +1,14 @@
+Metrics/ClassLength:
+  Max: 500
+
+Metrics/MethodLength:
+  Max: 20
+
+# Excluding spec files
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 2.6.5
+  Exclude:
+    - 'spec/*'
+    - 'vendor/**/*'
+    - '.git/**/*'
