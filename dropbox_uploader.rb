@@ -32,7 +32,8 @@ options = {
   path: ARGV[2],
   commit_status_context: ARGV[3] || 'HCK-CI',
   commit_status_description: ARGV[4],
-  commit_status_create: ARGV[5]
+  commit_status_state: ARGV[5],
+  commit_status_create: ARGV[6]
 }
 
 # DropboxUploader class
@@ -43,6 +44,7 @@ class DropboxUploader
     @commit_status_context = options[:commit_status_context]
     @commit_status_description = options[:commit_status_description]
     @commit_status_create = options[:commit_status_create]
+    @commit_status_state = options[:commit_status_state]
     @path = options[:path]
     @logger = logger.nil? ? Logger.new($stdout) : logger
   end
@@ -148,24 +150,24 @@ class DropboxUploader
   end
 
   def update_status
-    if @last_status.nil?
-      if @commit_status_create != '--create'
-        @logger.error('Last status not available')
-        exit 1
-      else
-        context = @commit_status_context
-        description = commit_status_description
-      end
+    if @commit_status_create == '--create'
+      context = @commit_status_context
+      description = @commit_status_description
+      state = @commit_status_state
+    elsif @last_status.nil?
+      @logger.error('Last status not available')
+      exit 1
     else
       context = @last_status.context
       description = @last_status.description
+      state = @last_status.state
     end
 
     options = { 'context' => context,
                 'description' => description,
                 'target_url' => @target_url }
     @logger.info('Updating current status with remote url')
-    @github.create_status(@repo, @commit, @last_status.state, options)
+    @github.create_status(@repo, @commit, state, options)
   end
 
   def upload_files
