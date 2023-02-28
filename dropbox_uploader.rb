@@ -18,11 +18,11 @@ if File.exist?(CONFIG_JSON)
   DROPBOX_CLIENT_ID = config['dropbox_client_id']
   DROPBOX_CLIENT_SECRET = config['dropbox_client_secret']
 else
-  GITHUB_LOGIN = ENV['AUTOHCK_GITHUB_LOGIN']
-  GITHUB_PASSWORD = ENV['AUTOHCK_GITHUB_TOKEN']
-  DROPBOX_TOKEN_JSON = ENV['AUTOHCK_DROPBOX_TOKEN_JSON']
-  DROPBOX_CLIENT_ID = ENV['AUTOHCK_DROPBOX_CLIENT_ID']
-  DROPBOX_CLIENT_SECRET = ENV['AUTOHCK_DROPBOX_CLIENT_SECRET']
+  GITHUB_LOGIN = ENV.fetch('AUTOHCK_GITHUB_LOGIN', nil)
+  GITHUB_PASSWORD = ENV.fetch('AUTOHCK_GITHUB_TOKEN', nil)
+  DROPBOX_TOKEN_JSON = ENV.fetch('AUTOHCK_DROPBOX_TOKEN_JSON', nil)
+  DROPBOX_CLIENT_ID = ENV.fetch('AUTOHCK_DROPBOX_CLIENT_ID', nil)
+  DROPBOX_CLIENT_SECRET = ENV.fetch('AUTOHCK_DROPBOX_CLIENT_SECRET', nil)
 end
 
 # Reading CLI args
@@ -67,9 +67,7 @@ class DropboxUploader
   def save_token(token)
     @logger.info('Dropbox token to be saved in the local file')
 
-    File.open(@token_file, 'w') do |f|
-      f.write(token.to_hash.to_json)
-    end
+    File.write(@token_file, token.to_hash.to_json)
   end
 
   def load_token
@@ -161,7 +159,7 @@ class DropboxUploader
       full_path = "#{@path}/#{file}"
       next unless File.file?(full_path)
 
-      content = IO.read(full_path)
+      content = File.read(full_path)
       r_path = "#{@remote_path}/#{file}"
       @dropbox.upload(r_path, content)
     end
