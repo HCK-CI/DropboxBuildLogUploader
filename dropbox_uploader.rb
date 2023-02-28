@@ -30,13 +30,18 @@ repo = ARGV[0]
 commit = ARGV[1]
 path = ARGV[2]
 commit_status_context = ARGV[3] || 'HCK-CI'
+commit_status_description = ARGV[4] || nil
+commit_status_create = ARGV[5] || nil
 
 # DropboxUploader class
 class DropboxUploader
-  def initialize(repo, commit, commit_status_context, path, logger = nil)
+  def initialize(repo, commit, commit_status_context, path,
+                 commit_status_description, commit_status_create, logger = nil)
     @repo = repo
     @commit = commit
     @commit_status_context = commit_status_context
+    @commit_status_description = commit_status_description
+    @commit_status_create = commit_status_create
     @path = path
     @logger = logger.nil? ? Logger.new($stdout) : logger
   end
@@ -144,10 +149,19 @@ class DropboxUploader
   def update_status
     if @last_status.nil?
       @logger.error('Last status not available')
-      exit 1
+      if commit_status_create == '--create'
+        exit 1
+      else
+        context = @commit_status_context
+        description = commit_status_description
+      end
+    else
+      context = @last_status.context
+      description = @last_status.description
     end
-    options = { 'context' => @last_status.context,
-                'description' => @last_status.description,
+
+    options = { 'context' => context,
+                'description' => description,
                 'target_url' => @target_url }
     @logger.info('Updating current status with remote url')
     @github.create_status(@repo, @commit, @last_status.state, options)
@@ -166,7 +180,8 @@ class DropboxUploader
   end
 end
 
-dropbox_uploader = DropboxUploader.new(repo, commit, commit_status_context, path)
+dropbox_uploader = DropboxUploader.new(repo, commit, commit_status_context, path,
+                                       commit_status_description, commit_status_create)
 dropbox_uploader.init_dropbox(DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET, DROPBOX_TOKEN_JSON)
 if repo == '--ask'
   dropbox_uploader.ask_token
