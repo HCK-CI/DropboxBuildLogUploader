@@ -26,23 +26,24 @@ else
 end
 
 # Reading CLI args
-repo = ARGV[0]
-commit = ARGV[1]
-path = ARGV[2]
-commit_status_context = ARGV[3] || 'HCK-CI'
-commit_status_description = ARGV[4] || nil
-commit_status_create = ARGV[5] || nil
+options = {
+  repo: ARGV[0],
+  commit: ARGV[1],
+  path: ARGV[2],
+  commit_status_context: ARGV[3] || 'HCK-CI',
+  commit_status_description: ARGV[4],
+  commit_status_create: ARGV[5]
+}
 
 # DropboxUploader class
 class DropboxUploader
-  def initialize(repo, commit, commit_status_context, path,
-                 commit_status_description, commit_status_create, logger = nil)
-    @repo = repo
-    @commit = commit
-    @commit_status_context = commit_status_context
-    @commit_status_description = commit_status_description
-    @commit_status_create = commit_status_create
-    @path = path
+  def initialize(options, logger = nil)
+    @repo = options[:repo]
+    @commit = options[:commit]
+    @commit_status_context = options[:commit_status_context]
+    @commit_status_description = options[:commit_status_description]
+    @commit_status_create = options[:commit_status_create]
+    @path = options[:path]
     @logger = logger.nil? ? Logger.new($stdout) : logger
   end
 
@@ -180,10 +181,9 @@ class DropboxUploader
   end
 end
 
-dropbox_uploader = DropboxUploader.new(repo, commit, commit_status_context, path,
-                                       commit_status_description, commit_status_create)
+dropbox_uploader = DropboxUploader.new(options)
 dropbox_uploader.init_dropbox(DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET, DROPBOX_TOKEN_JSON)
-if repo == '--ask'
+if options[:repo] == '--ask'
   dropbox_uploader.ask_token
   exit 0
 end
